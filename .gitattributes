@@ -1,0 +1,12 @@
+# Normalise all text to LF in the repo and on checkout, so Prettier (which
+# defaults to LF) and ESLint stay green on Windows regardless of core.autocrlf.
+* text=auto eol=lf
+
+# Binary assets: never touch.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
