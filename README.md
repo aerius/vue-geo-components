@@ -49,14 +49,16 @@ get the map with `useMap()`.
 ## Use the newest build
 
 Say Archive uses this library and you want to always work against the latest version.
-There are two cases:
+There are two cases. The difference is live vs. on-demand:
 
 **You are editing the library too.** Use yalc: your local library changes show up in the
-app the moment you save, with no publishing at all. This is the fastest loop. See
-[docs/local-development.md](./docs/local-development.md).
+app the moment you save - live, with nothing to run and no publishing at all. This is the
+fastest loop. See [docs/local-development.md](./docs/local-development.md).
 
 **You just want the newest published build** (you're not editing the library). Depend on
-the `dev` tag instead of a version number. In the app's `package.json`:
+the `dev` tag. This is an on-demand pull, not a live link: the app stays on whatever is in
+its lockfile and only moves when you run `npm update` - it never changes under you
+mid-session. In the app's `package.json`:
 
 ```json
 "@aerius/vue-geo-components": "dev"
