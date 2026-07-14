@@ -6,21 +6,24 @@ There are two channels:
 - **`dev`** - a snapshot published on every push to `main`. For always tracking the
   newest build.
 
-The **git tag is the source of truth** for the version. You do not maintain a version
-number in `package.json` - it stays at the placeholder `0.0.0`, and CI injects the real
-version at publish time. Nothing is committed back to the repo.
+The **git tag is the source of truth** for the version. You never edit the version in
+`package.json` by hand. When you cut a release, the Action publishes with that version and
+then writes it back into `package.json` on `main`, so the repo always reflects the current
+release. Before the first release, `package.json` sits at `0.0.0`.
 
 ## Real releases (`latest`)
 
 To cut a release:
 
-1. Make a GitHub Release with a tag like `v0.2.0`. Write the release notes there (that is
-   our changelog).
+1. Make a GitHub Release with a tag like `v0.2.0` (cut from `main`). Write the release
+   notes there (that is our changelog).
 2. That's it. The release workflow (`.github/workflows/on-release-published.yml`) reads
    the tag, sets the version to `0.2.0`, builds, tests, and publishes to Nexus under the
-   `latest` tag.
+   `latest` tag. It then commits `package.json` at `0.2.0` back to `main`
+   (as `chore: set version 0.2.0 [skip ci]`).
 
-No local version command, no changelog file to maintain, no version bump commit.
+No local version command and no changelog file to maintain. The one commit that touches
+the version is made by the Action, not you.
 
 Version numbers are [semver](https://semver.org/): major.minor.patch. We stay on `0.x`
 while the library is new (a minor version may include breaking changes), and move to
@@ -52,3 +55,7 @@ Apps opt in by depending on the `dev` tag. See "Use the newest build" in the
   (`aerius/vue-geo-components`). The `.npmrc` reads it as `_authToken`.
 - Publishing runs only on the upstream repo. Forks run CI but never publish, so no secret
   is needed on a fork.
+- For the version bump-back, the Action pushes one commit to `main`. This needs Actions
+  write access (repo Settings -> Actions -> Workflow permissions -> "Read and write"), and
+  if `main` is protected, `github-actions` must be allowed to push to it (add it to the
+  branch-protection bypass list).
