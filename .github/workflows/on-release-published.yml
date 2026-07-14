@@ -1,13 +1,11 @@
 name: release-published-event
 
 # Publishes @aerius/vue-geo-components to Aerius Nexus when a GitHub Release is
-# published. The git tag is the source of truth: tag `v0.2.0` publishes `0.2.0`
-# under the `latest` tag. After publishing, the version is written back into
-# package.json on main, so the repo always reflects the current release.
+# published. The git tag is the source of truth: tag `v0.2.0` publishes `0.2.0`.
+# A normal release goes to the `latest` tag; a GitHub pre-release goes to `next`.
+# After a normal release, the version is written back into package.json on main.
 #
-# Auth: NEXUS_TOKEN secret for publishing (read by .npmrc). The bump-back pushes
-# to main with the built-in GITHUB_TOKEN, so branch protection must allow
-# github-actions to push to main. Only runs on the upstream repo.
+# Auth: NEXUS_TOKEN secret (read by .npmrc). Only runs on the upstream repo.
 on:
   release:
     types: [published]
@@ -18,6 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      TAG: ${{ github.event.release.tag_name }}
+      PRERELEASE: ${{ github.event.release.prerelease }}
     steps:
       # Checks out the released (tagged) commit, so we publish exactly that code.
       - uses: actions/checkout@v4
@@ -33,46 +34,58 @@ jobs:
         run: npm run build && npm test
 
       - name: Set version from the release tag
-        run: |
-          TAG="${{ github.event.release.tag_name }}"
-          npm version "${TAG#v}" --no-git-tag-version --allow-same-version
+        run: npm version "${TAG#v}" --no-git-tag-version --allow-same-version
 
       - name: Publish to Nexus
-        run: npm publish
+        # Pre-releases go to the `next` tag so they never take over `latest`.
+        run: |
+          if [ "$PRERELEASE" = "true" ]; then
+            npm publish --tag next
+          else
+            npm publish
+          fi
         env:
           NEXUS_TOKEN: ${{ secrets.NEXUS_TOKEN }}
 
-  # Write the released version back into package.json on main. Runs only after a
-  # successful publish. Pushes with GITHUB_TOKEN, which does not re-trigger any
-  # workflow (and [skip ci] guards the case where a PAT is used instead).
+  # Write the released version back into package.json on main. Only for a normal
+  # release, and only when the tag is actually on main and newer than what main
+  # records, so a pre-release or an out-of-line hotfix can never rewrite main.
   bump-version:
     needs: publish
-    if: github.repository == 'aerius/vue-geo-components'
+    if: github.repository == 'aerius/vue-geo-components' && github.event.release.prerelease == false
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      TAG: ${{ github.event.release.tag_name }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
-
-      - run: npm ci
 
       - name: Write the release version into package.json on main
         run: |
-          VERSION="${{ github.event.release.tag_name }}"
-          VERSION="${VERSION#v}"
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
-          if git diff --quiet; then
-            echo "package.json already at $VERSION, nothing to commit."
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -am "chore: set version $VERSION [skip ci]"
-            git push origin main
+          VERSION="${TAG#v}"
+          CURRENT=$(node -p "require('./package.json').version")
+
+          if ! git merge-base --is-ancestor "refs/tags/$TAG" HEAD; then
+            echo "Tag $TAG is not on main; skipping bump-back."
+            exit 0
           fi
+
+          HIGHEST=$(printf '%s\n%s\n' "$CURRENT" "$VERSION" | sort -V | tail -n1)
+          if [ "$VERSION" = "$CURRENT" ] || [ "$HIGHEST" != "$VERSION" ]; then
+            echo "main already at $CURRENT (>= $VERSION); nothing to bump."
+            exit 0
+          fi
+
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: set version $VERSION [skip ci]"
+          git push origin HEAD:main

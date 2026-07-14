@@ -59,3 +59,5 @@ Apps opt in by depending on the `dev` tag. See "Use the newest build" in the
   write access (repo Settings -> Actions -> Workflow permissions -> "Read and write"), and
   if `main` is protected, `github-actions` must be allowed to push to it (add it to the
   branch-protection bypass list).
+- A Nexus cleanup policy that prunes old `-dev-` snapshot versions (they accumulate on
+  every push to `main`). Keep real releases exempt.

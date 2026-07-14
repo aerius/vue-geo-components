@@ -4,6 +4,13 @@
   "description": "Shared Vue 3 + OpenLayers geo components for AERIUS frontends (GRIP, Archive).",
   "type": "module",
   "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aerius/vue-geo-components.git"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
   "files": [
     "dist"
   ],
@@ -14,11 +21,15 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./style.css": "./dist/index.css"
+    "./style.css": "./dist/index.css",
+    "./package.json": "./package.json"
   },
   "sideEffects": [
     "**/*.css"
   ],
+  "publishConfig": {
+    "registry": "https://nexus.aerius.nl/repository/npm-hosted/"
+  },
   "scripts": {
     "dev": "vite build --watch",
     "build": "run-p type-check build-only",
@@ -26,9 +37,11 @@
     "type-check": "vue-tsc --build",
     "test": "vitest run",
     "test:unit": "vitest",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts",
+    "lint": "eslint . --max-warnings 0",
     "lint-fix": "npm run lint -- --fix",
-    "format": "prettier --write src/"
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepublishOnly": "node -e \"if (!process.env.CI) { throw new Error('Publish only via CI (tag a GitHub Release).'); }\""
   },
   "peerDependencies": {
     "ol": "^10.0.0",
@@ -40,7 +53,7 @@
     "@eslint/js": "^9.39.2",
     "@tsconfig/node24": "^24.0.3",
     "@types/jsdom": "^27.0.0",
-    "@types/node": "^25.0.3",
+    "@types/node": "^24.0.0",
     "@types/proj4": "^2.5.6",
     "@vitejs/plugin-vue": "^6.0.3",
     "@vue/compiler-sfc": "^3.5.26",

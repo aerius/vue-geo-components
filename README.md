@@ -76,6 +76,19 @@ npm update @aerius/vue-geo-components
 Each snapshot has a unique version, so this always works cleanly. (A plain `npm install`
 keeps whatever is locked in `package-lock.json`, so use `npm update` to move forward.)
 
+## Pin a released version
+
+For a stable build (e.g. on a GRIP/Archive release branch), depend on a real release
+number instead of the `dev` tag:
+
+```bash
+npm install @aerius/vue-geo-components@0.2.0
+```
+
+Commit `package.json` and `package-lock.json`. The committed lockfile is what makes the
+build reproducible; a `^0.2.0` range still pins exact bytes via the lockfile and only lets
+`npm update` move within `0.2.x`.
+
 ## Develop this library
 
 ```bash
@@ -94,12 +107,12 @@ npm run build        # type-check + build dist/
 
 Everything comes from [`src/index.ts`](./src/index.ts):
 
-| Export | What it is |
-| --- | --- |
-| `MapView` | The OpenLayers map as a Vue component. Shares the map with child components. |
-| `useMap` / `provideMap` / `mapInjectionKey` | Get or share the map instance. |
-| `RD` / `registerRdProjection` / `isRdRegistered` | Dutch RD map projection (EPSG:28992). |
-| `useMapViewStore` | Shared map state (center, zoom). |
+| Export                                           | What it is                                                                   |
+| ------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `MapView`                                        | The OpenLayers map as a Vue component. Shares the map with child components. |
+| `useMap` / `provideMap` / `mapInjectionKey`      | Get or share the map instance.                                               |
+| `RD` / `registerRdProjection` / `isRdRegistered` | Dutch RD map projection (EPSG:28992).                                        |
+| `useMapViewStore`                                | Shared map state (center, zoom).                                             |
 
 ## License
 
