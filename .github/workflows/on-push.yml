@@ -28,3 +28,39 @@ jobs:
 
       - name: Build library
         run: npm run build-only
+
+  # After CI passes on main, publish a snapshot to the `dev` tag on Nexus.
+  # Each snapshot gets a unique version (<base>-dev-<git hash>), so apps that
+  # depend on the "dev" tag just refetch to get the newest build. Real releases
+  # go out separately via on-release-published.yml (the `latest` tag).
+  publish-snapshot:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Set snapshot version
+        run: |
+          BASE=$(node -p "require('./package.json').version")
+          # e.g. 0.1.0-dev-1a2b3c4 - unique per commit, valid semver (the "dev-"
+          # prefix keeps the git hash from ever being read as a number).
+          npm version "${BASE}-dev-${GITHUB_SHA::7}" --no-git-tag-version
+
+      - name: Build
+        run: npm run build-only
+
+      - name: Publish snapshot to Nexus (dev tag)
+        run: |
+          export NEXUS_AUTH="$(printf '%s:%s' "$NEXUS_USERNAME" "$NEXUS_PASSWORD" | base64 -w0)"
+          npm publish --tag dev
+        env:
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}

@@ -11,17 +11,29 @@ peer dependencies: the library does not bundle them, it uses the app's own copie
 > comes in a follow-up. The `MapView` component and `RD` helper here are a small working
 > example.
 
-## Install
+## Use it in an app
+
+You need Node 24 (see [`.nvmrc`](./.nvmrc)).
+
+**1. Point npm at Nexus for the `@aerius` scope.** Add this line to the app's `.npmrc`:
+
+```
+@aerius:registry=https://nexus.aerius.nl/repository/npm-hosted/
+```
+
+(Confirm the exact Nexus path with infra; keep it the same as this repo's
+[`.npmrc`](./.npmrc). If reads need a login, run
+`npm login --scope=@aerius --registry=https://nexus.aerius.nl/repository/npm-hosted/`
+once.)
+
+**2. Install it**, plus the peer dependencies if the app doesn't already have them:
 
 ```bash
 npm install @aerius/vue-geo-components
-# peer dependencies, if the app doesn't have them yet:
 npm install ol vue proj4 pinia
 ```
 
-Set up npm to get `@aerius` packages from Nexus (see [`.npmrc`](./.npmrc)).
-
-## Usage
+**3. Use it:**
 
 ```vue
 <script setup lang="ts">
@@ -38,9 +50,33 @@ import "ol/ol.css";
 `MapView` uses the Dutch RD map projection (EPSG:28992) by default. Child components can
 get the map with `useMap()`.
 
-## Develop
+## Use the newest build
 
-Needs Node 24 (see [`.nvmrc`](./.nvmrc)).
+Say Archive uses this library and you want to always work against the latest version.
+There are two cases:
+
+**You are editing the library too.** Use yalc: your local library changes show up in the
+app the moment you save, with no publishing at all. This is the fastest loop. See
+[docs/local-development.md](./docs/local-development.md).
+
+**You just want the newest published build** (you're not editing the library). Depend on
+the `dev` tag instead of a version number. In the app's `package.json`:
+
+```json
+"@aerius/vue-geo-components": "dev"
+```
+
+Every push to this library's `main` publishes a new `dev` snapshot. To pull the newest one
+into the app:
+
+```bash
+npm update @aerius/vue-geo-components
+```
+
+Each snapshot has a unique version, so this always works cleanly. (A plain `npm install`
+keeps whatever is locked in `package-lock.json`, so use `npm update` to move forward.)
+
+## Develop this library
 
 ```bash
 npm install
@@ -51,7 +87,7 @@ npm test
 npm run build        # type-check + build dist/
 ```
 
-- **Work on it against GRIP / Archive without publishing:** [docs/local-development.md](./docs/local-development.md)
+- **Work on it against GRIP / Archive:** [docs/local-development.md](./docs/local-development.md)
 - **Releasing and versioning:** [docs/versioning.md](./docs/versioning.md)
 
 ## What it exports
