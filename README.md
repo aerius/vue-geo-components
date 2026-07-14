@@ -13,8 +13,6 @@ peer dependencies: the library does not bundle them, it uses the app's own copie
 
 ## Use it in an app
 
-You need Node 24 (see [`.nvmrc`](./.nvmrc)).
-
 **1. Point npm at Nexus for the `@aerius` scope.** Add this line to the app's `.npmrc`:
 
 ```
@@ -88,6 +86,8 @@ build reproducible; a `^0.2.0` range still pins exact bytes via the lockfile and
 `npm update` move within `0.2.x`.
 
 ## Develop this library
+
+Use Node 24 (see [`.nvmrc`](./.nvmrc)).
 
 ```bash
 npm install

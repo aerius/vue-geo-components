@@ -27,8 +27,8 @@ the version is made by the Action, not you.
 
 Version numbers are [semver](https://semver.org/): major.minor.patch. We stay on `0.x`
 while the library is new (a minor version may include breaking changes), and move to
-`1.0.0` once it's stable. GRIP and Archive depend on a `^0.x` range or pin an exact
-version - see [the README](../README.md).
+`1.0.0` once it's stable. GRIP and Archive track the `dev` tag on their main branch and
+pin an exact release on a release branch - see [the README](../README.md).
 
 ## Snapshots (`dev`)
 
@@ -41,9 +41,30 @@ for a real release.
 - Each commit gets its own unique version, so there is never a stale-cache or integrity
   problem.
 - The `dev` tag always points at the newest snapshot. It never touches `latest`.
+- A `-dev-` version sorts _below_ its release in semver (`0.1.0-dev-1a2b3c4` < `0.1.0`).
+  That is why apps depend on the `dev` tag string, not a `^` range - a range would never
+  pick up a snapshot.
 
 Apps opt in by depending on the `dev` tag. See "Use the newest build" in the
 [README](../README.md).
+
+### Does `dev` stay reproducible?
+
+Yes, within retention. An app pins the exact snapshot it resolved (`0.2.0-dev-1a2b3c4`
+plus its integrity hash) in its own `package-lock.json`, not just the `dev` tag. So
+`npm ci` on any commit reinstalls the exact library build that commit used, and going back
+in history rebuilds against the library it was built with - not the newest `dev`. The tag
+only decides what `npm update` pulls forward; the lockfile pins the bytes.
+
+The one limit is retention: `-dev-` snapshots are pruned on Nexus over time (like Maven
+`-SNAPSHOT`), so a very old commit whose snapshot was already pruned can no longer
+reinstall it. Keep retention long enough to cover how far back you rebuild `main`. Anything
+that must stay reproducible long-term lives on a release branch pinned to a real release,
+which is never pruned.
+
+(There is no version range that tracks "the newest dev". A caret on a prerelease like
+`^1.2.0-dev` only floats within `1.2.0`'s prereleases, never across versions - that is why
+apps use the `dev` tag, not a range.)
 
 ## Before the first release (infra)
 
@@ -61,4 +82,5 @@ Apps opt in by depending on the `dev` tag. See "Use the newest build" in the
   if `main` is protected, `github-actions` must be allowed to push to it (add it to the
   branch-protection bypass list).
 - A Nexus cleanup policy that prunes old `-dev-` snapshot versions (they accumulate on
-  every push to `main`). Keep real releases exempt.
+  every push to `main`). Keep real releases exempt, and keep snapshots long enough to cover
+  how far back `main` is rebuilt (see "Does `dev` stay reproducible?" above).
