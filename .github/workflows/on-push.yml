@@ -33,9 +33,11 @@ jobs:
   # Each snapshot gets a unique version (<base>-dev-<git hash>), so apps that
   # depend on the "dev" tag just refetch to get the newest build. Real releases
   # go out separately via on-release-published.yml (the `latest` tag).
+  #
+  # Gated to the upstream repo, so pushes to a fork run CI but never publish.
   publish-snapshot:
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.repository == 'aerius/vue-geo-components' && github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,9 +60,6 @@ jobs:
         run: npm run build-only
 
       - name: Publish snapshot to Nexus (dev tag)
-        run: |
-          export NEXUS_AUTH="$(printf '%s:%s' "$NEXUS_USERNAME" "$NEXUS_PASSWORD" | base64 -w0)"
-          npm publish --tag dev
+        run: npm publish --tag dev
         env:
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+          NEXUS_TOKEN: ${{ secrets.NEXUS_TOKEN }}

@@ -4,15 +4,16 @@ name: release-published-event
 # published. Cut the release after `npm run version` has bumped the version and
 # updated CHANGELOG.md on main (see docs/versioning.md).
 #
-# Nexus auth follows the org convention (see aerius/search, aerius/IMAER-java):
-# the NEXUS_USERNAME / NEXUS_PASSWORD secrets. The committed .npmrc reads them as
-# a base64 basic-auth token via the NEXUS_AUTH env var.
+# Auth uses the NEXUS_TOKEN secret (a token for a dedicated Nexus CI account),
+# which the committed .npmrc reads. Only runs on the upstream repo, so forks
+# never publish.
 on:
   release:
     types: [published]
 
 jobs:
   publish:
+    if: github.repository == 'aerius/vue-geo-components'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -30,9 +31,6 @@ jobs:
         run: npm run build && npm test
 
       - name: Publish to Nexus
-        run: |
-          export NEXUS_AUTH="$(printf '%s:%s' "$NEXUS_USERNAME" "$NEXUS_PASSWORD" | base64 -w0)"
-          npm publish
+        run: npm publish
         env:
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+          NEXUS_TOKEN: ${{ secrets.NEXUS_TOKEN }}

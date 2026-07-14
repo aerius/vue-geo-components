@@ -54,5 +54,8 @@ Apps opt in by depending on the `dev` tag. See "Use the newest build" in the
 - One `npm (hosted)` repository on `nexus.aerius.nl`. Confirm the exact path; the config
   assumes `repository/npm-hosted/`. Snapshots and releases share this one repo, because
   every published version is unique.
-- The `NEXUS_USERNAME` and `NEXUS_PASSWORD` secrets, with rights to publish there. These
-  are the same ones the Maven repos (aerius/search, aerius/IMAER-java) already use.
+- A dedicated Nexus CI account (not a personal login) with publish rights to that repo,
+  and a token for it. Store the token as the `NEXUS_TOKEN` secret on the **upstream** repo
+  (`aerius/vue-geo-components`). The `.npmrc` reads it as `_authToken`.
+- Publishing runs only on the upstream repo. Forks run CI but never publish, so no secret
+  is needed on a fork.
