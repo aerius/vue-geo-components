@@ -60,6 +60,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+          registry-url: ${{ vars.NEXUS_REGISTRY || 'https://nexus.aerius.nl/repository/npm/' }}
+          scope: "@aerius"
 
       - run: npm ci
 
@@ -79,4 +81,4 @@ jobs:
       - name: Publish snapshot to Nexus (dev tag)
         run: npm publish --tag dev
         env:
-          NEXUS_TOKEN: ${{ secrets.NEXUS_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NEXUS_TOKEN }}

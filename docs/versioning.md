@@ -47,14 +47,15 @@ Apps opt in by depending on the `dev` tag. See "Use the newest build" in the
 
 ## Before the first release (infra)
 
-- One `npm (hosted)` repository on `nexus.aerius.nl`. Confirm the exact path; the config
-  assumes `repository/npm-hosted/`. Snapshots and releases share this one repo, because
-  every published version is unique.
+- The npm repository on Nexus (`https://nexus.aerius.nl/repository/npm/`). Snapshots and
+  releases share this one repo, because every published version is unique.
+- The registry URL is configurable: the workflows read the `NEXUS_REGISTRY` repo/org
+  **variable** and fall back to the URL above. Set the variable only if the path differs.
 - A dedicated Nexus CI account (not a personal login) with publish rights to that repo,
   and a token for it. Store the token as the `NEXUS_TOKEN` secret on the **upstream** repo
-  (`aerius/vue-geo-components`). The `.npmrc` reads it as `_authToken`.
-- Publishing runs only on the upstream repo. Forks run CI but never publish, so no secret
-  is needed on a fork.
+  (`aerius/vue-geo-components`). `actions/setup-node` wires it up as `NODE_AUTH_TOKEN`.
+- Publishing runs only on the upstream repo. Forks never publish (and have Actions turned
+  off), so no secret is needed on a fork.
 - For the version bump-back, the Action pushes one commit to `main`. This needs Actions
   write access (repo Settings -> Actions -> Workflow permissions -> "Read and write"), and
   if `main` is protected, `github-actions` must be allowed to push to it (add it to the

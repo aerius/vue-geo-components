@@ -27,6 +27,11 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+          # Registry is configurable via the NEXUS_REGISTRY repo/org variable,
+          # defaulting to the Aerius Nexus npm repo. setup-node writes the auth
+          # .npmrc that reads NODE_AUTH_TOKEN.
+          registry-url: ${{ vars.NEXUS_REGISTRY || 'https://nexus.aerius.nl/repository/npm/' }}
+          scope: "@aerius"
 
       - run: npm ci
 
@@ -45,7 +50,7 @@ jobs:
             npm publish
           fi
         env:
-          NEXUS_TOKEN: ${{ secrets.NEXUS_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NEXUS_TOKEN }}
 
   # Write the released version back into package.json on main. Only for a normal
   # release, and only when the tag is actually on main and newer than what main

@@ -27,9 +27,6 @@
   "sideEffects": [
     "**/*.css"
   ],
-  "publishConfig": {
-    "registry": "https://nexus.aerius.nl/repository/npm-hosted/"
-  },
   "scripts": {
     "dev": "vite build --watch",
     "build": "run-p type-check build-only",

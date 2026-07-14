@@ -18,13 +18,11 @@ You need Node 24 (see [`.nvmrc`](./.nvmrc)).
 **1. Point npm at Nexus for the `@aerius` scope.** Add this line to the app's `.npmrc`:
 
 ```
-@aerius:registry=https://nexus.aerius.nl/repository/npm-hosted/
+@aerius:registry=https://nexus.aerius.nl/repository/npm/
 ```
 
-(Confirm the exact Nexus path with infra; keep it the same as this repo's
-[`.npmrc`](./.npmrc). If reads need a login, run
-`npm login --scope=@aerius --registry=https://nexus.aerius.nl/repository/npm-hosted/`
-once.)
+(If reads need a login, run
+`npm login --scope=@aerius --registry=https://nexus.aerius.nl/repository/npm/` once.)
 
 **2. Install it**, plus the peer dependencies if the app doesn't already have them:
 
