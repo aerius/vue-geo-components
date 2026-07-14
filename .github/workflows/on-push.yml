@@ -56,9 +56,12 @@ jobs:
           # Need tags so we can base the snapshot on the latest release.
           fetch-depth: 0
 
-      - uses: ./.github/actions/setup-nexus-npm
+      - uses: actions/setup-node@v4
         with:
-          registry: ${{ vars.NEXUS_REGISTRY }}
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: ${{ vars.NEXUS_REGISTRY || 'https://nexus.aerius.nl/repository/npm/' }}
+          scope: "@aerius"
 
       - run: npm ci
 
