@@ -1,0 +1,25 @@
+name: "Set up npm for Nexus"
+description: "Configure Node and npm auth for the Aerius Nexus npm registry."
+
+inputs:
+  registry:
+    description: "Registry URL. Pass vars.NEXUS_REGISTRY; when empty, the default below is used."
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    # The registry default lives here, once, for the whole repo.
+    - name: Resolve Nexus registry
+      shell: bash
+      env:
+        REGISTRY: ${{ inputs.registry }}
+      run: echo "NEXUS_REGISTRY=${REGISTRY:-https://nexus.aerius.nl/repository/npm/}" >> "$GITHUB_ENV"
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: .nvmrc
+        cache: npm
+        registry-url: ${{ env.NEXUS_REGISTRY }}
+        scope: "@aerius"

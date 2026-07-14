@@ -23,15 +23,11 @@ jobs:
       # Checks out the released (tagged) commit, so we publish exactly that code.
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      # Registry is configurable via the NEXUS_REGISTRY repo/org variable, with
+      # the default defined once in the composite action. Wires up NODE_AUTH_TOKEN.
+      - uses: ./.github/actions/setup-nexus-npm
         with:
-          node-version-file: .nvmrc
-          cache: npm
-          # Registry is configurable via the NEXUS_REGISTRY repo/org variable,
-          # defaulting to the Aerius Nexus npm repo. setup-node writes the auth
-          # .npmrc that reads NODE_AUTH_TOKEN.
-          registry-url: ${{ vars.NEXUS_REGISTRY || 'https://nexus.aerius.nl/repository/npm/' }}
-          scope: "@aerius"
+          registry: ${{ vars.NEXUS_REGISTRY }}
 
       - run: npm ci
 
