@@ -72,6 +72,19 @@ npm update @aerius/vue-geo-components
 Each snapshot has a unique version, so this always works cleanly. (A plain `npm install`
 keeps whatever is locked in `package-lock.json`, so use `npm update` to move forward.)
 
+**Deploying the newest dev automatically (e.g. a nightly).** CI floats to the latest dev on
+its own - no commit, no human:
+
+```bash
+npm ci                                 # locked, reproducible base for everything else
+npm update @aerius/vue-geo-components   # bump just this library to the newest dev
+npm run build
+```
+
+The lockfile change from `npm update` is thrown away with the CI runner, so nothing is
+committed. A production or release deploy leaves out the `npm update` line (or builds from a
+release branch pinned to a real version), so it ships an exact, frozen build.
+
 ## Pin a released version
 
 For a stable build (e.g. on a GRIP/Archive release branch), depend on a real release
