@@ -25,7 +25,7 @@ npx nodemon --watch dist --exec "yalc push"
 In GRIP or Archive, link the library once:
 
 ```bash
-yalc add @aerius/vue-map-components
+yalc add @aerius/vue-geo-components
 npm install
 ```
 
@@ -34,7 +34,7 @@ Now save a file in the library, it rebuilds, and the app updates on screen.
 When you're done, remove the local copy:
 
 ```bash
-yalc remove @aerius/vue-map-components && npm install
+yalc remove @aerius/vue-geo-components && npm install
 ```
 
 **Warning:** `yalc add` changes the app's `package.json` (it adds a `file:.yalc/...`

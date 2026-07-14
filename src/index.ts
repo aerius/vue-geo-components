@@ -1,4 +1,4 @@
-// Public entry point for @aerius/vue-map-components.
+// Public entry point for @aerius/vue-geo-components.
 // Keep this list curated: everything exported here is part of the public API.
 
 export { default as MapView } from "@/components/MapView.vue";

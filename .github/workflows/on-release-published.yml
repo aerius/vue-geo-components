@@ -1,6 +1,6 @@
 name: release-published-event
 
-# Publishes @aerius/vue-map-components to Aerius Nexus when a GitHub Release is
+# Publishes @aerius/vue-geo-components to Aerius Nexus when a GitHub Release is
 # published. Cut the release after `npm run version` has bumped the version and
 # updated CHANGELOG.md on main (see docs/versioning.md).
 #

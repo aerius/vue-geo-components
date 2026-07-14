@@ -1,6 +1,6 @@
-# @aerius/vue-map-components
+# @aerius/vue-geo-components
 
-Shared Vue 3 + OpenLayers map components for AERIUS. Used by
+Shared Vue 3 + OpenLayers geo components for AERIUS. Used by
 [GRIP](https://github.com/aerius/GRIP) (NL Monitor) and Archive. Both apps use the same
 stack: Vue 3, Vite, TypeScript, OpenLayers 10, proj4, and Pinia.
 
@@ -14,7 +14,7 @@ peer dependencies: the library does not bundle them, it uses the app's own copie
 ## Install
 
 ```bash
-npm install @aerius/vue-map-components
+npm install @aerius/vue-geo-components
 # peer dependencies, if the app doesn't have them yet:
 npm install ol vue proj4 pinia
 ```
@@ -25,8 +25,8 @@ Set up npm to get `@aerius` packages from Nexus (see [`.npmrc`](./.npmrc)).
 
 ```vue
 <script setup lang="ts">
-import { MapView } from "@aerius/vue-map-components";
-import "@aerius/vue-map-components/style.css";
+import { MapView } from "@aerius/vue-geo-components";
+import "@aerius/vue-geo-components/style.css";
 import "ol/ol.css";
 </script>
 
