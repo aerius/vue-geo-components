@@ -1,8 +1,9 @@
 name: release-published-event
 
 # Publishes @aerius/vue-geo-components to Aerius Nexus when a GitHub Release is
-# published. Cut the release after `npm run version` has bumped the version and
-# updated CHANGELOG.md on main (see docs/versioning.md).
+# published. The git tag is the source of truth for the version: the tag
+# `v0.2.0` publishes `0.2.0` under the `latest` tag. package.json stays at its
+# placeholder `0.0.0` in the repo; the version is injected here at publish time.
 #
 # Auth uses the NEXUS_TOKEN secret (a token for a dedicated Nexus CI account),
 # which the committed .npmrc reads. Only runs on the upstream repo, so forks
@@ -29,6 +30,11 @@ jobs:
 
       - name: Build, type-check and test
         run: npm run build && npm test
+
+      - name: Set version from the release tag
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          npm version "${TAG#v}" --no-git-tag-version --allow-same-version
 
       - name: Publish to Nexus
         run: npm publish

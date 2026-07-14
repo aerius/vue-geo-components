@@ -41,6 +41,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Need tags so we can base the snapshot on the latest release.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -51,9 +54,12 @@ jobs:
 
       - name: Set snapshot version
         run: |
-          BASE=$(node -p "require('./package.json').version")
-          # e.g. 0.1.0-dev-1a2b3c4 - unique per commit, valid semver (the "dev-"
-          # prefix keeps the git hash from ever being read as a number).
+          # Base the snapshot on the latest release tag (v0.1.0 -> 0.1.0), so
+          # snapshots read as 0.1.0-dev-<hash>. Falls back to 0.0.0 before the
+          # first release. The "dev-" prefix keeps the git hash from ever being
+          # read as a number, so this is always valid semver.
+          BASE=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null | sed 's/^v//' || echo "0.0.0")
+          BASE=${BASE:-0.0.0}
           npm version "${BASE}-dev-${GITHUB_SHA::7}" --no-git-tag-version
 
       - name: Build

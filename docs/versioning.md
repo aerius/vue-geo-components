@@ -6,34 +6,26 @@ There are two channels:
 - **`dev`** - a snapshot published on every push to `main`. For always tracking the
   newest build.
 
+The **git tag is the source of truth** for the version. You do not maintain a version
+number in `package.json` - it stays at the placeholder `0.0.0`, and CI injects the real
+version at publish time. Nothing is committed back to the repo.
+
 ## Real releases (`latest`)
 
-- We use [Changesets](https://github.com/changesets/changesets) to set the version number
-  and write the changelog. Don't edit the version by hand.
-- Version numbers are [semver](https://semver.org/): major.minor.patch. GRIP and Archive
-  depend on a `^0.x` range.
-- We stay on `0.x` while the library is new. During `0.x`, a minor version can include
-  breaking changes. We move to `1.0.0` once it's stable.
+To cut a release:
 
-### For each change
+1. Make a GitHub Release with a tag like `v0.2.0`. Write the release notes there (that is
+   our changelog).
+2. That's it. The release workflow (`.github/workflows/on-release-published.yml`) reads
+   the tag, sets the version to `0.2.0`, builds, tests, and publishes to Nexus under the
+   `latest` tag.
 
-```bash
-npm run changeset
-```
+No local version command, no changelog file to maintain, no version bump commit.
 
-Pick major, minor, or patch, and write one line for the changelog. Commit the new file in
-`.changeset/` with your PR. No user-facing change means no changeset.
-
-### To release
-
-1. On `main`, apply the pending changes:
-   ```bash
-   npm run version   # updates the version and CHANGELOG.md
-   ```
-2. Commit and push.
-3. Make a GitHub Release with a tag that matches the new version (like `v0.2.0`).
-4. This triggers the release workflow, which builds, tests, and publishes to Nexus under
-   the `latest` tag.
+Version numbers are [semver](https://semver.org/): major.minor.patch. We stay on `0.x`
+while the library is new (a minor version may include breaking changes), and move to
+`1.0.0` once it's stable. GRIP and Archive depend on a `^0.x` range or pin an exact
+version - see [the README](../README.md).
 
 ## Snapshots (`dev`)
 
@@ -41,10 +33,11 @@ Every push to `main` publishes a snapshot to Nexus under the `dev` tag (see
 `.github/workflows/on-push.yml`). This lets apps track the newest build without waiting
 for a real release.
 
-- The version is `<base>-dev-<git hash>`, for example `0.1.0-dev-1a2b3c4`. Each commit
-  gets its own unique version, so there is never a stale-cache or integrity problem.
-- The `dev` tag always points at the newest snapshot.
-- Snapshots are separate from real releases and never affect the `latest` tag.
+- The version is `<latest release>-dev-<git hash>`, for example `0.1.0-dev-1a2b3c4`. The
+  base comes from the latest git tag (before the first release it is `0.0.0`).
+- Each commit gets its own unique version, so there is never a stale-cache or integrity
+  problem.
+- The `dev` tag always points at the newest snapshot. It never touches `latest`.
 
 Apps opt in by depending on the `dev` tag. See "Use the newest build" in the
 [README](../README.md).
