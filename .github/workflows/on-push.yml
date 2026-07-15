@@ -1,14 +1,18 @@
-name: push-event
+name: CI and snapshot publish
 
 on:
   push:
+    branches: [main]
   pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -16,15 +20,39 @@ jobs:
           cache: npm
 
       - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run type-check
+      - run: npm test
+      - run: npm run build-only
 
-      - name: Lint
-        run: npm run lint
+  # Publish a snapshot to the `dev` tag on every push to main. Upstream repo
+  # only; serialized so concurrent pushes don't leave `dev` on an older commit.
+  publish-snapshot:
+    needs: build
+    if: github.repository == 'aerius/vue-geo-components' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: publish-snapshot
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
 
-      - name: Type-check
-        run: npm run type-check
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: ${{ vars.NEXUS_REGISTRY || 'https://nexus.aerius.nl/repository/npm/' }}
+          scope: "@aerius"
 
-      - name: Test
-        run: npm test
+      - run: npm ci
 
-      - name: Build library
-        run: npm run build-only
+      - name: Set a unique snapshot version
+        run: npm version "0.0.0-dev-${GITHUB_SHA::7}" --no-git-tag-version
+
+      - run: npm run build-only
+
+      - name: Publish to the dev tag
+        run: npm publish --tag dev
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NEXUS_TOKEN }}
