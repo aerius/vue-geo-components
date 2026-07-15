@@ -1,6 +1,6 @@
 # Versioning and releases
 
-`package.json` sits at `0.0.0-development`. Snapshots never change it. The one thing that
+`package.json` sits at `0.0.0`. Snapshots never change it. The one thing that
 changes it is cutting a real release, where `npm version` sets the release number the
 standard npm way (see [Real releases](#real-releases-latest-tag)). There is no automated
 version-bump commit and no version-bump PR.
@@ -13,9 +13,9 @@ track the newest build.
 
 - CI runs first (lint, format, type-check, test, build). Only if it passes does the
   snapshot publish.
-- The workflow gives each snapshot a unique version by appending the commit hash to the
-  pinned base: `0.0.0-development-<hash>`, e.g. `0.0.0-development-1a2b3c4`. Because each
-  version is unique, there is never a stale-cache or re-publish problem.
+- The workflow gives each snapshot a unique version by appending `-dev-<hash>` to the base
+  `0.0.0`: `0.0.0-dev-<hash>`, e.g. `0.0.0-dev-1a2b3c4`. Because each version is unique,
+  there is never a stale-cache or re-publish problem.
 - The `dev` tag always points at the newest snapshot.
 
 Apps opt in by depending on the `dev` tag and moving forward with `npm update` - see
@@ -51,9 +51,9 @@ tag disagree, so a Release cut from the GitHub UI without running `npm version` 
 never publish the wrong number. `npm publish` ships it to the default `latest` tag, so apps
 can pin an exact release (`@aerius/vue-geo-components@0.2.0`).
 
-Note: `npm version` moves `package.json` off `0.0.0-development` to the released number,
-which is the standard behaviour. Snapshots are unaffected - the snapshot job always
-publishes `0.0.0-development-<hash>` regardless of what `package.json` says.
+Note: `npm version` moves `package.json` off `0.0.0` to the released number, which is the
+standard behaviour. Snapshots are unaffected - the snapshot job always publishes
+`0.0.0-dev-<hash>` regardless of what `package.json` says.
 
 ## Infra needed before the first publish
 

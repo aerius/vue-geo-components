@@ -12,7 +12,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -26,13 +26,8 @@ jobs:
       - run: npm test
       - run: npm run build-only
 
-  # Every push to main publishes a snapshot to the `dev` tag on Nexus, so apps
-  # can track the newest build. The job sets a unique version in the runner
-  # (0.0.0-development-<hash>) and publishes that; it never commits anything back,
-  # so the repo's package.json is untouched.
-  #
-  # Only runs on the upstream repo, so pushes to a fork run CI but never publish.
-  # Serialized so two quick pushes can't leave `dev` on the older commit.
+  # Publish a snapshot to the `dev` tag on every push to main. Upstream repo
+  # only; serialized so concurrent pushes don't leave `dev` on an older commit.
   publish-snapshot:
     needs: build
     if: github.repository == 'aerius/vue-geo-components' && github.event_name == 'push'
@@ -41,7 +36,7 @@ jobs:
       group: publish-snapshot
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -52,12 +47,12 @@ jobs:
 
       - run: npm ci
 
-      - name: Version this snapshot with the commit hash
-        run: npm version "0.0.0-development-${GITHUB_SHA::7}" --no-git-tag-version --allow-same-version
+      - name: Set a unique snapshot version
+        run: npm version "0.0.0-dev-${GITHUB_SHA::7}" --no-git-tag-version --allow-same-version
 
       - run: npm run build-only
 
-      - name: Publish snapshot to the dev tag
+      - name: Publish to the dev tag
         run: npm publish --tag dev
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NEXUS_TOKEN }}

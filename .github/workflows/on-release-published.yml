@@ -1,14 +1,8 @@
 name: Release publish
 
-# Publishes a real release to Nexus when a GitHub Release is published, following
-# the standard npm/GitHub flow. The version is whatever package.json holds at the
-# tagged commit - set by `npm version` when you cut the release, not by CI. So
-# there is no version step here and nothing is committed back to the repo. As a
-# guard, we fail if package.json and the release tag disagree, so a release cut
-# without `npm version` can never publish the wrong number.
-#
-# Only runs on the upstream repo. Auth is the NEXUS_TOKEN secret, wired up by
-# setup-node as NODE_AUTH_TOKEN.
+# Publish to Nexus when a GitHub Release is published. The version comes from
+# package.json at the tagged commit; the guard fails the run if it doesn't match
+# the tag. Upstream repo only.
 on:
   release:
     types: [published]
@@ -21,8 +15,7 @@ jobs:
     if: github.repository == 'aerius/vue-geo-components'
     runs-on: ubuntu-latest
     steps:
-      # Checks out the released (tagged) commit, so we publish exactly that code.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
