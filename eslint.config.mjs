@@ -2,20 +2,24 @@ import js from "@eslint/js";
 import pluginVue from "eslint-plugin-vue";
 import { defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript";
 import skipFormattingConfig from "@vue/eslint-config-prettier/skip-formatting";
+import vueParser from "vue-eslint-parser";
 
 export default defineConfigWithVueTs(
   {
     name: "app/files-to-ignore",
-    ignores: ["dist/**", "node_modules/**"],
+    ignores: [".gitignore", "dist/**", "node_modules/**", ".vscode", "**/*.json"],
   },
 
   js.configs.recommended,
-  // flat/recommended is a superset of strongly-recommended and essential.
-  ...pluginVue.configs["flat/recommended"],
+
+  ...pluginVue.configs["flat/essential"],
   vueTsConfigs.recommended,
+  skipFormattingConfig,
+  ...pluginVue.configs["flat/recommended"],
+  ...pluginVue.configs["flat/strongly-recommended"],
 
   {
-    files: ["**/*.{js,mjs,ts,vue}"],
+    files: ["vue", "js", "mjs", "ts"].flatMap((ext) => [`*.${ext}`, `**/*.${ext}`]),
     rules: {
       eqeqeq: "error",
       curly: "error",
@@ -24,10 +28,35 @@ export default defineConfigWithVueTs(
       "no-var": "error",
       "prefer-const": "error",
       "prefer-template": "error",
+      "no-multiple-empty-lines": ["error", { max: 1 }],
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "vue/singleline-html-element-content-newline": "off",
+      "vue/max-attributes-per-line": "off",
+      "vue/html-closing-bracket-newline": "off",
+      "vue/html-indent": "off",
+      "vue/html-self-closing": [
+        "error",
+        {
+          html: {
+            void: "any",
+            normal: "never",
+            component: "always",
+          },
+          svg: "always",
+          math: "always",
+        },
+      ],
+      "no-undef": "off",
     },
   },
 
-  // Must be last: turns off every rule that Prettier owns.
-  skipFormattingConfig,
+  {
+    files: ["*.vue", "**/*.vue"],
+    languageOptions: {
+      parser: vueParser,
+      parserOptions: {
+        ecmaVersion: "latest",
+      },
+    },
+  },
 );
