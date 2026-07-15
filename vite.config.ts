@@ -15,6 +15,9 @@ export default defineConfig({
       include: ["src"],
       exclude: ["src/**/__tests__/**", "src/**/*.test.ts"],
       // Emit declarations flat under dist/ (dist/index.d.ts), not dist/src/.
+      // Per-file .d.ts resolve correctly for our bundler-resolution consumers
+      // (GRIP/Archive). A node16/nodenext consumer would need rollupTypes: true
+      // (which pulls in @microsoft/api-extractor); revisit only if that happens.
       entryRoot: "src",
     }),
   ],
@@ -26,6 +29,10 @@ export default defineConfig({
   },
 
   build: {
+    // Ship readable code with sourcemaps; the consuming apps minify again, and
+    // a minified library only makes their stack traces unreadable.
+    sourcemap: true,
+    minify: false,
     lib: {
       entry: fileURLToPath(new URL("./src/index.ts", import.meta.url)),
       formats: ["es"],
