@@ -46,8 +46,10 @@ To cut a release:
 
 Publishing the Release runs the workflow: `npm ci`, build, `npm publish`. The version is
 whatever `package.json` holds at the tagged commit - there is no version step in CI and
-nothing is committed back. `npm publish` ships it to the default `latest` tag, so apps can
-pin an exact release (`@aerius/vue-geo-components@0.2.0`).
+nothing is committed back. As a guard, the workflow fails if `package.json` and the release
+tag disagree, so a Release cut from the GitHub UI without running `npm version` first can
+never publish the wrong number. `npm publish` ships it to the default `latest` tag, so apps
+can pin an exact release (`@aerius/vue-geo-components@0.2.0`).
 
 Note: `npm version` moves `package.json` off `0.0.0-development` to the released number,
 which is the standard behaviour. Snapshots are unaffected - the snapshot job always

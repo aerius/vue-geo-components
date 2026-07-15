@@ -3,7 +3,9 @@ name: Release publish
 # Publishes a real release to Nexus when a GitHub Release is published, following
 # the standard npm/GitHub flow. The version is whatever package.json holds at the
 # tagged commit - set by `npm version` when you cut the release, not by CI. So
-# there is no version step here and nothing is committed back to the repo.
+# there is no version step here and nothing is committed back to the repo. As a
+# guard, we fail if package.json and the release tag disagree, so a release cut
+# without `npm version` can never publish the wrong number.
 #
 # Only runs on the upstream repo. Auth is the NEXUS_TOKEN secret, wired up by
 # setup-node as NODE_AUTH_TOKEN.
@@ -28,6 +30,16 @@ jobs:
           cache: npm
           registry-url: ${{ vars.NEXUS_REGISTRY || 'https://nexus.aerius.nl/repository/npm/' }}
           scope: "@aerius"
+
+      - name: Check package.json matches the release tag
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ "$PKG" != "$TAG" ]; then
+            echo "package.json is $PKG but the release tag is $TAG."
+            echo "Run 'npm version $TAG' on the release commit and re-tag."
+            exit 1
+          fi
 
       - run: npm ci
       - run: npm run build-only
