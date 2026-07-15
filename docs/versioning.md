@@ -35,14 +35,28 @@ and the
 [GitHub tutorial](https://docs.github.com/en/actions/tutorials/publish-packages/publish-nodejs-packages)).
 To cut a release:
 
-1. Set the version and tag it, the normal npm way:
+1. Set the version and tag it, the normal npm way. Either bump by semver level:
 
    ```bash
-   npm version 0.2.0   # writes 0.2.0 into package.json and creates the git tag v0.2.0
+   npm version patch   # 0.1.0 -> 0.1.1 (bug fixes)
+   npm version minor   # 0.1.0 -> 0.2.0 (new features; may break while on 0.x)
+   npm version major   # 0.1.0 -> 1.0.0 (stable, breaking changes)
+   ```
+
+   or set an exact version:
+
+   ```bash
+   npm version 0.2.0
+   ```
+
+   Either form writes the number into `package.json`, commits it, and creates the matching
+   `v<version>` git tag. Then push the commit and the tag:
+
+   ```bash
    git push --follow-tags
    ```
 
-2. Create a GitHub Release from that `v0.2.0` tag (its notes are the changelog).
+2. Create a GitHub Release from that `v<version>` tag (its notes are the changelog).
 
 Publishing the Release runs the workflow: `npm ci`, build, `npm publish`. The version is
 whatever `package.json` holds at the tagged commit - there is no version step in CI and
