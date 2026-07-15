@@ -49,56 +49,41 @@ get the map with `useMap()`.
 ## Use the newest build
 
 Say Archive uses this library and you want to always work against the latest version.
-There are two cases. The difference is live vs. on-demand:
+There are two cases:
 
 **You are editing the library too.** Use yalc: your local library changes show up in the
-app the moment you save - live, with nothing to run and no publishing at all. This is the
-fastest loop. See [docs/local-development.md](./docs/local-development.md).
+app the moment you save - live, with nothing to publish. This is the fastest loop. See
+[docs/local-development.md](./docs/local-development.md).
 
 **You just want the newest published build** (you're not editing the library). Depend on
-the `dev` tag. This is an on-demand pull, not a live link: the app stays on whatever is in
-its lockfile and only moves when you run `npm update` - it never changes under you
-mid-session. In the app's `package.json`:
+the `dev` tag in the app's `package.json`:
 
 ```json
 "@aerius/vue-geo-components": "dev"
 ```
 
-Every push to this library's `main` publishes a new `dev` snapshot. To pull the newest one
-into the app:
+Every push to this library's `main` publishes a new `dev` snapshot. Pull the newest one
+into the app with:
 
 ```bash
 npm update @aerius/vue-geo-components
 ```
 
-Each snapshot has a unique version, so this always works cleanly. (A plain `npm install`
-keeps whatever is locked in `package-lock.json`, so use `npm update` to move forward.)
-
-**Deploying the newest dev automatically (e.g. a nightly).** CI floats to the latest dev on
-its own - no commit, no human:
-
-```bash
-npm ci                                 # locked, reproducible base for everything else
-npm update @aerius/vue-geo-components   # bump just this library to the newest dev
-npm run build
-```
-
-The lockfile change from `npm update` is thrown away with the CI runner, so nothing is
-committed. A production or release deploy leaves out the `npm update` line (or builds from a
-release branch pinned to a real version), so it ships an exact, frozen build.
+Each snapshot has a unique version, so this always works cleanly. The app stays on whatever
+is locked in its `package-lock.json` until you run `npm update`, so `npm ci` stays
+reproducible. See [docs/versioning.md](./docs/versioning.md).
 
 ## Pin a released version
 
-For a stable build (e.g. on a GRIP/Archive release branch), depend on a real release
-number instead of the `dev` tag:
+For a stable build (e.g. on a GRIP/Archive release branch), depend on a real release number
+instead of the `dev` tag:
 
 ```bash
 npm install @aerius/vue-geo-components@0.2.0
 ```
 
-Commit `package.json` and `package-lock.json`. The committed lockfile is what makes the
-build reproducible; a `^0.2.0` range still pins exact bytes via the lockfile and only lets
-`npm update` move within `0.2.x`.
+Real releases are published to the `latest` tag from a GitHub Release - see
+[docs/versioning.md](./docs/versioning.md).
 
 ## Develop this library
 

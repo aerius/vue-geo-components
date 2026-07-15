@@ -1,4 +1,4 @@
-name: push-event
+name: CI and snapshot publish
 
 on:
   push:
@@ -20,41 +20,28 @@ jobs:
           cache: npm
 
       - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run type-check
+      - run: npm test
+      - run: npm run build-only
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Format check
-        run: npm run format:check
-
-      - name: Type-check
-        run: npm run type-check
-
-      - name: Test
-        run: npm test
-
-      - name: Build library
-        run: npm run build-only
-
-  # After CI passes on main, publish a snapshot to the `dev` tag on Nexus.
-  # Each snapshot gets a unique version (<base>-dev-<git hash>), so apps that
-  # depend on the "dev" tag just refetch to get the newest build. Real releases
-  # go out separately via on-release-published.yml (the `latest` tag).
+  # Every push to main publishes a snapshot to the `dev` tag on Nexus, so apps
+  # can track the newest build. package.json stays pinned at 0.0.0-development
+  # and is never edited; the workflow gives each snapshot a unique version by
+  # appending the commit hash. Nothing is committed back to the repo.
   #
-  # Gated to the upstream repo, so pushes to a fork run CI but never publish.
+  # Only runs on the upstream repo, so pushes to a fork run CI but never publish.
   # Serialized so two quick pushes can't leave `dev` on the older commit.
   publish-snapshot:
     needs: build
-    if: github.repository == 'aerius/vue-geo-components' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.repository == 'aerius/vue-geo-components' && github.event_name == 'push'
     runs-on: ubuntu-latest
     concurrency:
       group: publish-snapshot
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-        with:
-          # Need tags so we can base the snapshot on the latest release.
-          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -65,20 +52,12 @@ jobs:
 
       - run: npm ci
 
-      - name: Set snapshot version
-        run: |
-          # Base the snapshot on the latest release tag (v0.1.0 -> 0.1.0), so
-          # snapshots read as 0.1.0-dev-<hash>. Falls back to 0.0.0 before the
-          # first release. The "dev-" prefix keeps the git hash from ever being
-          # read as a number, so this is always valid semver.
-          BASE=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null | sed 's/^v//' || echo "0.0.0")
-          BASE=${BASE:-0.0.0}
-          npm version "${BASE}-dev-${GITHUB_SHA::7}" --no-git-tag-version
+      - name: Version this snapshot with the commit hash
+        run: npm version "0.0.0-development-${GITHUB_SHA::7}" --no-git-tag-version --allow-same-version
 
-      - name: Build
-        run: npm run build-only
+      - run: npm run build-only
 
-      - name: Publish snapshot to Nexus (dev tag)
+      - name: Publish snapshot to the dev tag
         run: npm publish --tag dev
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NEXUS_TOKEN }}

@@ -1,24 +1,23 @@
-name: release-published-event
+name: Release publish
 
-# Publishes @aerius/vue-geo-components to Aerius Nexus when a GitHub Release is
-# published. The git tag is the source of truth: tag `v0.2.0` publishes `0.2.0`.
-# A normal release goes to the `latest` tag; a GitHub pre-release goes to `next`.
-# After a normal release, the version is written back into package.json on main.
+# Publishes a real release to Nexus when a GitHub Release is published, following
+# the standard npm/GitHub flow. The version is whatever package.json holds at the
+# tagged commit - set by `npm version` when you cut the release, not by CI. So
+# there is no version step here and nothing is committed back to the repo.
 #
-# Auth: NEXUS_TOKEN secret (read by .npmrc). Only runs on the upstream repo.
+# Only runs on the upstream repo. Auth is the NEXUS_TOKEN secret, wired up by
+# setup-node as NODE_AUTH_TOKEN.
 on:
   release:
     types: [published]
+
+permissions:
+  contents: read
 
 jobs:
   publish:
     if: github.repository == 'aerius/vue-geo-components'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      TAG: ${{ github.event.release.tag_name }}
-      PRERELEASE: ${{ github.event.release.prerelease }}
     steps:
       # Checks out the released (tagged) commit, so we publish exactly that code.
       - uses: actions/checkout@v4
@@ -27,69 +26,11 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          # Configurable via the NEXUS_REGISTRY repo/org variable; defaults to
-          # the Aerius Nexus npm repo. setup-node wires up auth via NODE_AUTH_TOKEN.
           registry-url: ${{ vars.NEXUS_REGISTRY || 'https://nexus.aerius.nl/repository/npm/' }}
           scope: "@aerius"
 
       - run: npm ci
-
-      - name: Build, type-check and test
-        run: npm run build && npm test
-
-      - name: Set version from the release tag
-        run: npm version "${TAG#v}" --no-git-tag-version --allow-same-version
-
-      - name: Publish to Nexus
-        # Pre-releases go to the `next` tag so they never take over `latest`.
-        run: |
-          if [ "$PRERELEASE" = "true" ]; then
-            npm publish --tag next
-          else
-            npm publish
-          fi
+      - run: npm run build-only
+      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NEXUS_TOKEN }}
-
-  # Write the released version back into package.json on main. Only for a normal
-  # release, and only when the tag is actually on main and newer than what main
-  # records, so a pre-release or an out-of-line hotfix can never rewrite main.
-  bump-version:
-    needs: publish
-    if: github.repository == 'aerius/vue-geo-components' && github.event.release.prerelease == false
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    env:
-      TAG: ${{ github.event.release.tag_name }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Write the release version into package.json on main
-        run: |
-          VERSION="${TAG#v}"
-          CURRENT=$(node -p "require('./package.json').version")
-
-          if ! git merge-base --is-ancestor "refs/tags/$TAG" HEAD; then
-            echo "Tag $TAG is not on main; skipping bump-back."
-            exit 0
-          fi
-
-          HIGHEST=$(printf '%s\n%s\n' "$CURRENT" "$VERSION" | sort -V | tail -n1)
-          if [ "$VERSION" = "$CURRENT" ] || [ "$HIGHEST" != "$VERSION" ]; then
-            echo "main already at $CURRENT (>= $VERSION); nothing to bump."
-            exit 0
-          fi
-
-          npm version "$VERSION" --no-git-tag-version --allow-same-version
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: set version $VERSION [skip ci]"
-          git push origin HEAD:main

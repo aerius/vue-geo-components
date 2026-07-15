@@ -73,5 +73,6 @@ It all works on Windows. Set these up:
 
 ## Sharing changes with others
 
-yalc only works on your machine. To give your changes to teammates or CI, publish a real
-version to Nexus. See [versioning.md](./versioning.md).
+yalc only works on your machine. To give your changes to teammates or CI, push to `main`:
+that publishes a new `dev` snapshot to Nexus automatically. See
+[versioning.md](./versioning.md).
