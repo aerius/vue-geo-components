@@ -1,10 +1,10 @@
 # Versioning and releases
 
-`package.json` starts at `0.0.0`. A real release advances it: `npm version` writes the new
-number and commits it to `main` (see [Real releases](#real-releases-latest-tag)), so between
-releases it holds the last released version. Snapshots never touch it. There is no automated
-version-bump commit and no version-bump PR - the only bump is your own `npm version` at
-release time.
+`package.json` starts at `0.0.0` and holds the last released version. Day to day it never
+changes: snapshots don't touch it, so routine work needs no version bump and no PR. The one
+exception is cutting a real release, where you bump it yourself with `npm version` and land
+that commit on `main` (see [Real releases](#real-releases-latest-tag)). There is no
+automated bump-back and no per-change version PR.
 
 ## Snapshots (`dev` tag)
 
@@ -34,41 +34,34 @@ Releases follow the standard npm/GitHub flow (see
 [`.github/workflows/on-release-published.yml`](../.github/workflows/on-release-published.yml)
 and the
 [GitHub tutorial](https://docs.github.com/en/actions/tutorials/publish-packages/publish-nodejs-packages)).
-To cut a release:
+`main` is protected, so the version bump lands through a PR and the tag is created when you
+cut the Release:
 
-1. Set the version and tag it, the normal npm way. Either bump by semver level:
-
-   ```bash
-   npm version patch   # 0.1.0 -> 0.1.1 (bug fixes)
-   npm version minor   # 0.1.0 -> 0.2.0 (new features; may break while on 0.x)
-   npm version major   # 0.1.0 -> 1.0.0 (stable, breaking changes)
-   ```
-
-   or set an exact version:
+1. Bump the version on a branch - `package.json` and the lockfile only, no local tag (the
+   tag has to sit on `main`):
 
    ```bash
-   npm version 0.2.0
+   npm version minor --no-git-tag-version   # patch | minor | major, or an exact number
+   git commit -am "0.2.0"
    ```
 
-   Either form writes the number into `package.json`, commits it, and creates the matching
-   `v<version>` git tag. Then push the commit and the tag:
+   `patch` is 0.1.0 -> 0.1.1 (fixes), `minor` is 0.1.0 -> 0.2.0 (features; may break while
+   on 0.x), `major` is 0.1.0 -> 1.0.0 (breaking, once stable).
 
-   ```bash
-   git push --follow-tags
-   ```
+2. Open a PR with that bump and merge it into `main`.
 
-2. Create a GitHub Release from that `v<version>` tag (its notes are the changelog).
+3. On GitHub, draft a Release, create a new tag `v0.2.0` targeting `main`, and publish it.
+   GitHub puts the tag on the merged commit (where `package.json` is now `0.2.0`); the notes
+   are the changelog.
 
 Publishing the Release runs the workflow: `npm ci`, build, `npm publish`. The version is
-whatever `package.json` holds at the tagged commit - there is no version step in CI and
-nothing is committed back. As a guard, the workflow fails if `package.json` and the release
-tag disagree, so a Release cut from the GitHub UI without running `npm version` first can
-never publish the wrong number. `npm publish` ships it to the default `latest` tag, so apps
-can pin an exact release (`@aerius/vue-geo-components@0.2.0`).
+whatever `package.json` holds at the tagged commit - no version step in CI, nothing
+committed back. The guard fails the run if `package.json` and the tag disagree, so a
+mismatched Release can never publish the wrong number. `npm publish` ships to the default
+`latest` tag, so apps can pin an exact release (`@aerius/vue-geo-components@0.2.0`).
 
-Note: `npm version` updates `package.json` to the released number and commits it - standard
-behaviour. Snapshots are unaffected: the snapshot job always publishes `0.0.0-dev-<hash>`
-regardless of what `package.json` says.
+Snapshots are unaffected: the snapshot job always publishes `0.0.0-dev-<hash>` regardless of
+what `package.json` says.
 
 ## Infra needed before the first publish
 
