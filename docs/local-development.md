@@ -1,7 +1,7 @@
 # Local development against a consuming app
 
 Change library code and see it in the consuming app right away, without publishing a new
-version each time. We use yalc: it copies the built library into the app, like a normal
+version each time. We use yalc: it swaps your local build into the app in place of the
 installed package.
 
 ## Setup (once)
@@ -25,11 +25,12 @@ npm run dev
 npx nodemon --watch dist --exec "yalc push"
 ```
 
-In the consuming app, link the library once:
+In the consuming app, link the library once. Use `yalc link`, not `yalc add`: it swaps in
+your local build via a symlink and leaves `package.json` untouched, so there is nothing to
+accidentally commit.
 
 ```bash
-yalc add @aerius/vue-geo-components
-npm install
+yalc link @aerius/vue-geo-components
 ```
 
 Now save a file in the library and the app updates on screen.
@@ -44,17 +45,9 @@ you want the app back on the published version:
 yalc remove @aerius/vue-geo-components && npm install
 ```
 
-The one thing to get right: keep yalc's changes out of the app's git. `yalc add` writes a
-`file:.yalc/...` line into the app's `package.json`, plus a `.yalc/` folder and a
-`yalc.lock`. In the app:
-
-- add `.yalc/` and `yalc.lock` to the app's `.gitignore`
-- never commit the `file:.yalc/...` line in `package.json` (it would break the build for
-  everyone else)
-
-Tip: `yalc link` instead of `yalc add` does the same thing without touching
-`package.json` - so there is nothing to accidentally commit - at the cost of using a
-symlink instead of a copy.
+The one thing to get right: keep yalc's local files out of the app's git. `yalc link`
+creates a `.yalc/` folder and a `yalc.lock` (it does not touch `package.json`). Add both to
+the app's `.gitignore`.
 
 ## Windows
 
