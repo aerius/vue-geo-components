@@ -27,9 +27,9 @@ jobs:
       - run: npm run build-only
 
   # Every push to main publishes a snapshot to the `dev` tag on Nexus, so apps
-  # can track the newest build. package.json stays pinned at 0.0.0-development
-  # and is never edited; the workflow gives each snapshot a unique version by
-  # appending the commit hash. Nothing is committed back to the repo.
+  # can track the newest build. The job sets a unique version in the runner
+  # (0.0.0-development-<hash>) and publishes that; it never commits anything back,
+  # so the repo's package.json is untouched.
   #
   # Only runs on the upstream repo, so pushes to a fork run CI but never publish.
   # Serialized so two quick pushes can't leave `dev` on the older commit.
