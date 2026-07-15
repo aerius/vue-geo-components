@@ -1,6 +1,6 @@
-# Local development against GRIP / Archive
+# Local development against a consuming app
 
-Change library code and see it in GRIP or Archive right away, without publishing a new
+Change library code and see it in the consuming app right away, without publishing a new
 version each time. We use yalc: it copies the built library into the app, like a normal
 installed package.
 
@@ -25,7 +25,7 @@ npm run dev
 npx nodemon --watch dist --exec "yalc push"
 ```
 
-In GRIP or Archive, link the library once:
+In the consuming app, link the library once:
 
 ```bash
 yalc add @aerius/vue-geo-components
@@ -46,7 +46,7 @@ yalc remove @aerius/vue-geo-components && npm install
 
 The one thing to get right: keep yalc's changes out of the app's git. `yalc add` writes a
 `file:.yalc/...` line into the app's `package.json`, plus a `.yalc/` folder and a
-`yalc.lock`. In GRIP and Archive:
+`yalc.lock`. In the app:
 
 - add `.yalc/` and `yalc.lock` to the app's `.gitignore`
 - never commit the `file:.yalc/...` line in `package.json` (it would break the build for

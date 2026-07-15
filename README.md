@@ -1,8 +1,7 @@
 # @aerius/vue-geo-components
 
-Shared Vue 3 + OpenLayers geo components for AERIUS. Used by
-[GRIP](https://github.com/aerius/GRIP) (NL Monitor) and Archive. Both apps use the same
-stack: Vue 3, Vite, TypeScript, OpenLayers 10, proj4, and Pinia.
+Shared Vue 3 + OpenLayers geo components for AERIUS frontends. The stack is Vue 3, Vite,
+TypeScript, OpenLayers 10, proj4, and Pinia.
 
 The library is built with Vite and ships as ESM. `ol`, `vue`, `proj4`, and `pinia` are
 peer dependencies: the library does not bundle them, it uses the app's own copies.
@@ -48,7 +47,7 @@ get the map with `useMap()`.
 
 ## Use the newest build
 
-Say Archive uses this library and you want to always work against the latest version.
+Say an app uses this library and you want to always work against the latest version.
 There are two cases:
 
 **You are editing the library too.** Use yalc: your local library changes show up in the
@@ -75,7 +74,7 @@ reproducible. See [docs/versioning.md](./docs/versioning.md).
 
 ## Pin a released version
 
-For a stable build (e.g. on a GRIP/Archive release branch), depend on a real release number
+For a stable build (e.g. on an app's release branch), depend on a real release number
 instead of the `dev` tag:
 
 ```bash
@@ -98,7 +97,7 @@ npm test
 npm run build        # type-check + build dist/
 ```
 
-- **Work on it against GRIP / Archive:** [docs/local-development.md](./docs/local-development.md)
+- **Work on it against a consuming app:** [docs/local-development.md](./docs/local-development.md)
 - **Releasing and versioning:** [docs/versioning.md](./docs/versioning.md)
 
 ## What it exports

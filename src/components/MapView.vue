@@ -3,18 +3,17 @@ import Map from "ol/Map";
 import View from "ol/View";
 import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
-import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from "vue";
+import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from "vue";
 
 import { provideMap } from "@/composables/useMap";
 import { RD, registerRdProjection } from "@/projections/rd";
 
 const props = withDefaults(
   defineProps<{
-    /** Map center, in the active projection. Reactive. Defaults to the centre of the Netherlands in RD. */
+    /** Map center, in the active projection. Defaults to the centre of the Netherlands in RD. */
     center?: [number, number];
-    /** Zoom level. Reactive. */
     zoom?: number;
-    /** Projection code for the view. Applied once at mount; changing it later has no effect. Defaults to RD (EPSG:28992). */
+    /** Projection code for the view. Defaults to RD (EPSG:28992). */
     projection?: string;
   }>(),
   {
@@ -49,16 +48,6 @@ onMounted(() => {
 
   map.value = instance;
   emit("ready", instance);
-
-  // Keep the view in sync when center/zoom change after mount.
-  watch(
-    () => props.center,
-    (center) => instance.getView().setCenter(center),
-  );
-  watch(
-    () => props.zoom,
-    (zoom) => instance.getView().setZoom(zoom),
-  );
 });
 
 onBeforeUnmount(() => {
