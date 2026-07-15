@@ -1,9 +1,10 @@
 # Versioning and releases
 
-`package.json` sits at `0.0.0`. Snapshots never change it. The one thing that
-changes it is cutting a real release, where `npm version` sets the release number the
-standard npm way (see [Real releases](#real-releases-latest-tag)). There is no automated
-version-bump commit and no version-bump PR.
+`package.json` starts at `0.0.0`. A real release advances it: `npm version` writes the new
+number and commits it to `main` (see [Real releases](#real-releases-latest-tag)), so between
+releases it holds the last released version. Snapshots never touch it. There is no automated
+version-bump commit and no version-bump PR - the only bump is your own `npm version` at
+release time.
 
 ## Snapshots (`dev` tag)
 
@@ -65,9 +66,9 @@ tag disagree, so a Release cut from the GitHub UI without running `npm version` 
 never publish the wrong number. `npm publish` ships it to the default `latest` tag, so apps
 can pin an exact release (`@aerius/vue-geo-components@0.2.0`).
 
-Note: `npm version` moves `package.json` off `0.0.0` to the released number, which is the
-standard behaviour. Snapshots are unaffected - the snapshot job always publishes
-`0.0.0-dev-<hash>` regardless of what `package.json` says.
+Note: `npm version` updates `package.json` to the released number and commits it - standard
+behaviour. Snapshots are unaffected: the snapshot job always publishes `0.0.0-dev-<hash>`
+regardless of what `package.json` says.
 
 ## Infra needed before the first publish
 
