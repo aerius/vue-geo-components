@@ -21,8 +21,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          registry-url: ${{ vars.NEXUS_REGISTRY || 'https://nexus.aerius.nl/repository/npm/' }}
-          scope: "@aerius"
 
       - name: Check package.json matches the release tag
         run: |
@@ -36,6 +34,12 @@ jobs:
 
       - run: npm ci
       - run: npm run build-only
-      - run: npm publish
+
+      - name: Encode Nexus credentials for npm
+        run: echo "NEXUS_AUTH=$(printf '%s' "$NEXUS_USERNAME:$NEXUS_PASSWORD" | base64 -w0)" >> "$GITHUB_ENV"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NEXUS_TOKEN }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+
+      - name: Publish to Nexus
+        run: npm publish
