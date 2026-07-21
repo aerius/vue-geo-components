@@ -26,6 +26,10 @@ export default defineConfig({
   },
 
   build: {
+    // Ship readable code with sourcemaps; the consuming apps minify again, and
+    // a minified library only makes their stack traces unreadable.
+    sourcemap: true,
+    minify: false,
     lib: {
       entry: fileURLToPath(new URL("./src/index.ts", import.meta.url)),
       formats: ["es"],
