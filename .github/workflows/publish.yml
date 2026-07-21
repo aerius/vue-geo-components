@@ -1,9 +1,10 @@
-name: CI and snapshot publish
+name: Publish snapshot
 
+# Publishes a dev snapshot to Nexus on every push to main (upstream repo only).
+# This runs only for pushes to main, never for pull requests or other branches.
 on:
   push:
     branches: [main]
-  pull_request:
 
 permissions:
   contents: read
@@ -26,11 +27,11 @@ jobs:
       - run: npm test
       - run: npm run build-only
 
-  # Publish a snapshot to the `dev` tag on every push to main. Upstream repo
-  # only; serialized so concurrent pushes don't leave `dev` on an older commit.
+  # Publish a snapshot to the `dev` tag. Upstream repo only; serialized so
+  # concurrent pushes don't leave `dev` on an older commit.
   publish-snapshot:
     needs: build
-    if: github.repository == 'aerius/vue-geo-components' && github.event_name == 'push'
+    if: github.repository == 'aerius/vue-geo-components'
     runs-on: ubuntu-latest
     concurrency:
       group: publish-snapshot
