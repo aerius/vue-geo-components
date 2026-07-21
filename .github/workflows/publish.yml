@@ -51,11 +51,11 @@ jobs:
 
       - run: npm run build-only
 
-      - name: Publish to the dev tag
-        run: |
-          export NEXUS_AUTH="$(printf '%s' "$NEXUS_USERNAME:$NEXUS_PASSWORD" | base64 -w0)"
-          echo "::add-mask::$NEXUS_AUTH"
-          npm publish --tag dev
+      - name: Encode Nexus credentials for npm
+        run: echo "NEXUS_AUTH=$(printf '%s' "$NEXUS_USERNAME:$NEXUS_PASSWORD" | base64 -w0)" >> "$GITHUB_ENV"
         env:
           NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+
+      - name: Publish to the dev tag
+        run: npm publish --tag dev
