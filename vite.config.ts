@@ -15,9 +15,6 @@ export default defineConfig({
       include: ["src"],
       exclude: ["src/**/__tests__/**", "src/**/*.test.ts"],
       // Emit declarations flat under dist/ (dist/index.d.ts), not dist/src/.
-      // Per-file .d.ts resolve correctly for consumers on bundler module
-      // resolution. A node16/nodenext consumer would need rollupTypes: true
-      // (which pulls in @microsoft/api-extractor); revisit only if that happens.
       entryRoot: "src",
     }),
   ],

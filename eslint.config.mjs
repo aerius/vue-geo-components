@@ -10,7 +10,6 @@ export default defineConfigWithVueTs(
   },
 
   js.configs.recommended,
-  // flat/recommended is a superset of strongly-recommended and essential.
   ...pluginVue.configs["flat/recommended"],
   vueTsConfigs.recommended,
 
