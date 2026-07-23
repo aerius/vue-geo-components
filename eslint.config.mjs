@@ -59,4 +59,12 @@ export default defineConfigWithVueTs(
       },
     },
   },
+
+  {
+    name: "geo/layer-model",
+    files: ["src/layers/types.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
 );
