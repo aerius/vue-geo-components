@@ -1,9 +1,10 @@
 import { containsExtent } from "ol/extent.js";
+import type Map from "ol/Map.js";
 import View from "ol/View.js";
 import { describe, expect, it } from "vitest";
 
 import { registerRdProjection } from "@/projections/rd";
-import { mapViewForExtent } from "@/map/zoomToExtent";
+import { mapViewForExtent, zoomToExtent } from "@/map/zoomToExtent";
 
 const MAP_SIZE: [number, number] = [800, 600];
 const RESULT_EXTENT: [number, number, number, number] = [80898, 457695.5, 81908, 458705.5];
@@ -34,5 +35,26 @@ describe("mapViewForExtent", () => {
     mapView.setZoom(target.zoom);
 
     expect(containsExtent(mapView.calculateExtent(MAP_SIZE), WIDE_RESULT_EXTENT), "Every result hexagon should fit in the map").toBe(true);
+  });
+
+  it("waits for the map to be sized before fitting immediately", () => {
+    const mapView = view();
+    const listeners = new globalThis.Map<string, () => void>();
+    const viewport = { size: undefined as [number, number] | undefined };
+    const map = {
+      getView: () => mapView,
+      getSize: () => viewport.size,
+      once: (eventName: string, listener: () => void) => listeners.set(eventName, listener),
+      render: () => listeners.get("postrender")?.(),
+    } as unknown as Map;
+
+    zoomToExtent(map, RESULT_EXTENT, "immediate");
+    viewport.size = MAP_SIZE;
+    listeners.get("change:size")?.();
+
+    const target = mapViewForExtent(mapView, RESULT_EXTENT, MAP_SIZE);
+    expect(target, "The result extent should produce a map view").toBeDefined();
+    expect(mapView.getCenter(), "The map should center on the result extent once sized").toEqual(target?.center);
+    expect(mapView.getZoom(), "The map should fit the result extent once sized").toBe(target?.zoom);
   });
 });
