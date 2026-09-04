@@ -23,6 +23,7 @@ export type MapViewTarget = { center: [number, number]; zoom: number };
 
 export function zoomToExtentWhenMapIsSized(map: Map, extent: Extent): void {
   map.once("postrender", () => zoomToExtentWhenSized(map, extent));
+  map.render();
 }
 
 export function mapViewForExtent(view: View, extent: Extent, size: Size | undefined): MapViewTarget | undefined {
