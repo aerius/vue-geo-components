@@ -21,11 +21,13 @@ const VIEWPORT_PADDING_FACTOR = 1 - VIEWPORT_PADDING * 2;
 
 export type MapViewTarget = { center: [number, number]; zoom: number };
 
+/** Set the map view to fit an extent once the map has a viewport size. */
 export function zoomToExtentWhenMapIsSized(map: Map, extent: Extent): void {
   map.once("postrender", () => zoomToExtentWhenSized(map, extent));
   map.render();
 }
 
+/** Return the center and zoom needed to fit an extent within a viewport. */
 export function mapViewForExtent(view: View, extent: Extent, size: Size | undefined): MapViewTarget | undefined {
   const viewport = sizeOf(size);
   const corners = extentCorners(extent);
