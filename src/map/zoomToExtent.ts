@@ -1,5 +1,6 @@
 import type { Extent } from "ol/extent.js";
 import type Map from "ol/Map.js";
+import type { Size } from "ol/size.js";
 import type View from "ol/View.js";
 
 import { extentCorners, sizeOf, type Corners } from "./extent";
@@ -15,6 +16,35 @@ const EXTENT_PADDING = 0.2;
 
 /** Extents smaller than this in either direction just go to {@link MAX_ZOOM}. */
 const MIN_MEANINGFUL_EXTENT = 100;
+
+const VIEWPORT_PADDING_FACTOR = 1 - VIEWPORT_PADDING * 2;
+
+export type MapViewTarget = { center: [number, number]; zoom: number };
+
+export function zoomToExtentWhenMapIsSized(map: Map, extent: Extent): void {
+  map.once("postrender", () => zoomToExtentWhenSized(map, extent));
+}
+
+export function mapViewForExtent(view: View, extent: Extent, size: Size | undefined): MapViewTarget | undefined {
+  const viewport = sizeOf(size);
+  const corners = extentCorners(extent);
+  if (!viewport || !corners || viewport.width <= 0 || viewport.height <= 0) {
+    return undefined;
+  }
+
+  const resolution = view.getResolutionForExtent(extent, [viewport.width * VIEWPORT_PADDING_FACTOR, viewport.height * VIEWPORT_PADDING_FACTOR]);
+  const zoom = view.getZoomForResolution(resolution);
+  if (zoom === undefined) {
+    return undefined;
+  }
+
+  const constrainedZoom = view.getConstrainedZoom(zoom);
+  if (constrainedZoom === undefined) {
+    return undefined;
+  }
+
+  return { center: [(corners.minX + corners.maxX) / 2, (corners.minY + corners.maxY) / 2], zoom: constrainedZoom };
+}
 
 /**
  * Fly the map so a given extent fills the view, leaving a margin around it.
@@ -48,6 +78,18 @@ export function zoomToExtent(map: Map, extent: Extent): void {
   mapFlightFor(map).flyTo({ center: targetCenter, zoom: targetZoom });
 }
 
+function zoomToExtentWhenSized(map: Map, extent: Extent): void {
+  const target = mapViewForExtent(map.getView(), extent, map.getSize());
+  if (!target) {
+    map.once("change:size", () => zoomToExtentWhenSized(map, extent));
+    return;
+  }
+
+  const view = map.getView();
+  view.setCenter(target.center);
+  view.setZoom(target.zoom);
+}
+
 function zoomForExtent(view: View, corners: Corners, size: { width: number; height: number }): number {
   const width = corners.maxX - corners.minX;
   const height = corners.maxY - corners.minY;
@@ -62,7 +104,7 @@ function zoomForExtent(view: View, corners: Corners, size: { width: number; heig
     corners.maxX + width * EXTENT_PADDING,
     corners.maxY + height * EXTENT_PADDING,
   ];
-  const visible: [number, number] = [size.width * (1 - VIEWPORT_PADDING * 2), size.height * (1 - VIEWPORT_PADDING * 2)];
+  const visible: [number, number] = [size.width * VIEWPORT_PADDING_FACTOR, size.height * VIEWPORT_PADDING_FACTOR];
 
   // Both extent and viewport are known to be non-degenerate by now, so this is
   // a real resolution - max(width / pixels, height / pixels) - not a maybe.
