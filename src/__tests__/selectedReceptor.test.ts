@@ -34,7 +34,10 @@ describe("renderSelectedReceptor", () => {
   }
 
   function featureTypes(olLayer: VectorLayer): string[] {
-    return olLayer.getSource()!.getFeatures().map((feature) => feature.getGeometry()!.getType());
+    return olLayer
+      .getSource()!
+      .getFeatures()
+      .map((feature) => feature.getGeometry()!.getType());
   }
 
   it("draws the hexagon plus lines out to the view edges by default", () => {

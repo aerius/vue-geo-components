@@ -55,7 +55,10 @@ describe("applySearchSuggestion", () => {
     expect(view.getCenter()![0]).toBeCloseTo(center[0], 0);
     expect(view.getCenter()![1]).toBeCloseTo(center[1], 0);
     const layer = map.getLayers().item(map.getLayers().getLength() - 1) as VectorLayer;
-    const types = layer.getSource()!.getFeatures().map((feature) => feature.getGeometry()!.getType());
+    const types = layer
+      .getSource()!
+      .getFeatures()
+      .map((feature) => feature.getGeometry()!.getType());
     expect(types.filter((type) => type === "Polygon")).toHaveLength(1);
     expect(types.filter((type) => type === "LineString")).toHaveLength(4);
   });
