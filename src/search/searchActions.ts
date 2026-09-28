@@ -48,7 +48,6 @@ const resultLayers = new WeakMap<Map, LayerProps>();
  * overlay. It is deliberately transient - it pulses a few times and is then
  * removed - so the eye is drawn to the exact spot right after the map moves.
  */
-const SONAR_OFFSET_PIXELS = -100;
 const SONAR_PULSES = 4;
 const SONAR_REMOVE_TIME_MILLISECONDS = 11_000;
 const SONAR_STYLE_ELEMENT_ID = "geo-search-sonar-style";
@@ -70,8 +69,9 @@ const SONAR_STYLESHEET = `
 
 .geo-search-sonar__pulse {
   position: absolute;
-  top: 84px;
-  left: 84px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 30px;
   height: 30px;
   border-radius: 30px;
@@ -86,8 +86,9 @@ const SONAR_STYLESHEET = `
 
 .geo-search-sonar__ring {
   position: absolute;
-  top: 80px;
-  left: 80px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   box-sizing: border-box;
   width: 30px;
   height: 30px;
@@ -109,16 +110,12 @@ const SONAR_STYLESHEET = `
 
 @keyframes geo-search-sonar-pulse {
   from {
-    top: 83px;
-    left: 83px;
     width: 30px;
     height: 30px;
     box-shadow: #1579a0 0 0 0, inset #1579a0 0 0 0;
   }
 
   to {
-    top: 29px;
-    left: 29px;
     width: 140px;
     height: 140px;
     border-radius: 100px;
@@ -179,8 +176,7 @@ function pingSonar(map: Map, centroid: Geometry | undefined): void {
     element,
     insertFirst: false,
     stopEvent: false,
-    positioning: "top-left",
-    offset: [SONAR_OFFSET_PIXELS, SONAR_OFFSET_PIXELS],
+    positioning: "center-center",
     position: (centroid as Point).getCoordinates(),
   });
   map.addOverlay(overlay);
