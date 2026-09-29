@@ -2,6 +2,7 @@ import { interpolateZoom } from "d3-interpolate";
 import type { Coordinate } from "ol/coordinate.js";
 import type Map from "ol/Map.js";
 import type View from "ol/View.js";
+import ViewHint from "ol/ViewHint.js";
 
 /**
  * Smooth pan-and-zoom for an OpenLayers view using the van Wijk & Nuij (2003)
@@ -11,6 +12,10 @@ import type View from "ol/View.js";
  *
  * Create one controller per view and call `flyTo` as needed; each call cancels
  * the previous flight.
+ *
+ * A flight holds the view's INTERACTING hint, so the map fires one `moveend`
+ * when it lands instead of one per frame. Not ANIMATING: the view cancels that
+ * hint on the first `setCenter` of a flight it does not run itself.
  */
 
 export interface FlyTarget {
@@ -76,12 +81,17 @@ export function createMapFlyTo(view: View, map: Map, options: FlyOptions = {}): 
   let rafId: number | null = null;
   let activeTarget: FlyTarget | null = null;
 
+  const land = (): void => {
+    activeTarget = null;
+    view.setHint(ViewHint.INTERACTING, -1);
+  };
+
   const cancel = (): void => {
     if (rafId !== null) {
       cancelAnimationFrame(rafId);
       rafId = null;
+      land();
     }
-    activeTarget = null;
   };
 
   const flyTo = (target: FlyTarget): void => {
@@ -128,6 +138,7 @@ export function createMapFlyTo(view: View, map: Map, options: FlyOptions = {}): 
     const path = zoom(p0, p1);
     const duration = Math.min(maxDuration, Math.max(minDuration, path.duration * speedFactor));
     activeTarget = { center: [targetX, targetY], zoom: target.zoom };
+    view.setHint(ViewHint.INTERACTING, 1);
 
     let startTime: number | null = null;
     const step = (now: number): void => {
@@ -139,7 +150,7 @@ export function createMapFlyTo(view: View, map: Map, options: FlyOptions = {}): 
       view.setResolution(w / widthPx);
       rafId = t < 1 ? requestAnimationFrame(step) : null;
       if (rafId === null) {
-        activeTarget = null;
+        land();
       }
     };
     rafId = requestAnimationFrame(step);
