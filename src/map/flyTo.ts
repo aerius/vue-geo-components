@@ -13,9 +13,12 @@ import ViewHint from "ol/ViewHint.js";
  * Create one controller per view and call `flyTo` as needed; each call cancels
  * the previous flight.
  *
- * A flight holds the view's INTERACTING hint, so the map fires one `moveend`
- * when it lands instead of one per frame. Not ANIMATING: the view cancels that
- * hint on the first `setCenter` of a flight it does not run itself.
+ * A flight holds the view's ANIMATING hint, like `View#animate` does, so the map
+ * fires one `moveend` when it lands instead of one per frame. Each frame moves the
+ * view with a zero-length `animate`: a plain `setCenter` would count as someone
+ * else taking over and cancel the hint. A frame that finds the hint gone knows
+ * OpenLayers cancelled the animations, as it does when the user drags or scrolls,
+ * and stops the flight.
  */
 
 export interface FlyTarget {
@@ -81,17 +84,13 @@ export function createMapFlyTo(view: View, map: Map, options: FlyOptions = {}): 
   let rafId: number | null = null;
   let activeTarget: FlyTarget | null = null;
 
-  const land = (): void => {
-    activeTarget = null;
-    view.setHint(ViewHint.INTERACTING, -1);
-  };
-
   const cancel = (): void => {
     if (rafId !== null) {
       cancelAnimationFrame(rafId);
       rafId = null;
-      land();
+      view.cancelAnimations();
     }
+    activeTarget = null;
   };
 
   const flyTo = (target: FlyTarget): void => {
@@ -138,19 +137,24 @@ export function createMapFlyTo(view: View, map: Map, options: FlyOptions = {}): 
     const path = zoom(p0, p1);
     const duration = Math.min(maxDuration, Math.max(minDuration, path.duration * speedFactor));
     activeTarget = { center: [targetX, targetY], zoom: target.zoom };
-    view.setHint(ViewHint.INTERACTING, 1);
+    view.setHint(ViewHint.ANIMATING, 1);
 
     let startTime: number | null = null;
     const step = (now: number): void => {
+      if (!view.getAnimating()) {
+        rafId = null;
+        activeTarget = null;
+        return;
+      }
       startTime ??= now;
       const t = Math.min(1, (now - startTime) / duration);
       // smoothstep softens the start/stop only; the spatial arc stays optimal.
       const [cx, cy, w] = path(smoothstep(t));
-      view.setCenter([cx, cy]);
-      view.setResolution(w / widthPx);
+      view.animate({ center: [cx, cy], resolution: w / widthPx, duration: 0 });
       rafId = t < 1 ? requestAnimationFrame(step) : null;
       if (rafId === null) {
-        land();
+        activeTarget = null;
+        view.setHint(ViewHint.ANIMATING, -1);
       }
     };
     rafId = requestAnimationFrame(step);

@@ -22,8 +22,8 @@ function runFrames(limit = 1000): void {
   }
 }
 
-function interactingHint(view: View): number {
-  return view.getHints()[ViewHint.INTERACTING]!;
+function animatingHint(view: View): number {
+  return view.getHints()[ViewHint.ANIMATING]!;
 }
 
 beforeEach(() => {
@@ -43,18 +43,18 @@ afterEach(() => {
 });
 
 describe("createMapFlyTo", () => {
-  it("holds the interacting hint for the whole flight", () => {
+  it("holds the animating hint for the whole flight", () => {
     const view = new View({ center: [155000, 463000], zoom: 3 });
     createMapFlyTo(view, SIZED).flyTo(TARGET);
     runFrames(3);
 
-    expect(view.getInteracting(), "The hint should survive the flight's own setCenter calls").toBe(true);
+    expect(view.getAnimating(), "The hint should survive the flight's own setCenter calls").toBe(true);
 
     runFrames();
 
     expect(view.getCenter()![0], "The flight should land on the target").toBeCloseTo(TARGET.center[0]!);
     expect(view.getCenter()![1], "The flight should land on the target").toBeCloseTo(TARGET.center[1]!);
-    expect(interactingHint(view), "The hint should be released once the flight lands").toBe(0);
+    expect(animatingHint(view), "The hint should be released once the flight lands").toBe(0);
   });
 
   it("releases the hint when the flight is cancelled", () => {
@@ -65,7 +65,7 @@ describe("createMapFlyTo", () => {
 
     flight.cancel();
 
-    expect(interactingHint(view), "Cancelling should give the hint back").toBe(0);
+    expect(animatingHint(view), "Cancelling should give the hint back").toBe(0);
   });
 
   it("holds one hint when a new flight replaces a running one", () => {
@@ -76,29 +76,30 @@ describe("createMapFlyTo", () => {
 
     flight.flyTo({ center: [200000, 500000], zoom: 8 });
 
-    expect(interactingHint(view), "The replaced flight should hand its hint back").toBe(1);
+    expect(animatingHint(view), "The replaced flight should hand its hint back").toBe(1);
     runFrames();
-    expect(interactingHint(view), "The hint should be released once the new flight lands").toBe(0);
+    expect(animatingHint(view), "The hint should be released once the new flight lands").toBe(0);
   });
 
-  it("stays balanced when the user drags during a flight", () => {
+  it("stops when the user takes over mid-flight", () => {
     const view = new View({ center: [155000, 463000], zoom: 3 });
     createMapFlyTo(view, SIZED).flyTo(TARGET);
     runFrames(3);
 
-    // What DragPan does around a drag.
-    view.beginInteraction();
+    // What DragPan and MouseWheelZoom do when the user grabs the map.
+    view.cancelAnimations();
+    const grabbed = view.getCenter();
     runFrames();
-    view.endInteraction();
 
-    expect(interactingHint(view), "The flight and the drag should each give back their own hint").toBe(0);
+    expect(view.getCenter(), "The flight should leave the view to the user").toEqual(grabbed);
+    expect(animatingHint(view), "The hint should stay at zero, not go negative").toBe(0);
   });
 
   it("does not take the hint when the view is already there", () => {
     const view = new View({ center: TARGET.center, zoom: TARGET.zoom });
     createMapFlyTo(view, SIZED).flyTo(TARGET);
 
-    expect(interactingHint(view), "A flight that does not start should not hold the hint").toBe(0);
+    expect(animatingHint(view), "A flight that does not start should not hold the hint").toBe(0);
   });
 
   it("fires moveend once, when the flight lands", () => {
