@@ -48,7 +48,7 @@ describe("createMapFlyTo", () => {
     createMapFlyTo(view, SIZED).flyTo(TARGET);
     runFrames(3);
 
-    expect(view.getAnimating(), "The hint should survive the flight's own setCenter calls").toBe(true);
+    expect(view.getAnimating(), "The hint should survive the flight's own moves").toBe(true);
 
     runFrames();
 
